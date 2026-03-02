@@ -25,9 +25,7 @@ function App() {
   const fetchData = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/items/`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch');
       const result = await response.json();
@@ -84,8 +82,8 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {data.map((item, index) => (
-              <tr key={index}>
+            {data.map((item) => (
+              <tr key={item.id}>
                 <td>{item.id}</td>
                 <td>{item.type}</td>
                 <td>{item.title}</td>
