@@ -1,115 +1,105 @@
-import { useState, useEffect, FormEvent } from 'react'
-import './App.css'
+import React, { useState, useEffect } from 'react';
 
-const STORAGE_KEY = 'api_token'
+const API_TOKEN_KEY = 'api_token';
+const API_BASE_URL = import.meta.env.VITE_API_TARGET;
 
 interface Item {
-  id: number
-  type: string
-  title: string
-  created_at: string
+  id: number;
+  type: string;
+  title: string;
+  description: string;
+  created_at: string;
 }
 
 function App() {
-  const [token, setToken] = useState(
-    () => localStorage.getItem(STORAGE_KEY) ?? '',
-  )
-  const [draft, setDraft] = useState('')
-  const [items, setItems] = useState<Item[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [token, setToken] = useState(localStorage.getItem(API_TOKEN_KEY) || '');
+  const [data, setData] = useState<Item[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!token) return
+    if (token) {
+      fetchData();
+    }
+  }, [token]);
 
-    setLoading(true)
-    setError(null)
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/items/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch');
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
+      setError('Failed to fetch data');
+    }
+  };
 
-    fetch('/items', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then((data: Item[]) => {
-        setItems(data)
-        setLoading(false)
-      })
-      .catch((err: Error) => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [token])
+  const handleConnect = () => {
+    localStorage.setItem(API_TOKEN_KEY, token);
+    fetchData();
+  };
 
-  function handleConnect(e: FormEvent) {
-    e.preventDefault()
-    const trimmed = draft.trim()
-    if (!trimmed) return
-    localStorage.setItem(STORAGE_KEY, trimmed)
-    setToken(trimmed)
-  }
-
-  function handleDisconnect() {
-    localStorage.removeItem(STORAGE_KEY)
-    setToken('')
-    setDraft('')
-    setItems([])
-    setError(null)
-  }
+  const handleDisconnect = () => {
+    localStorage.removeItem(API_TOKEN_KEY);
+    setToken('');
+    setData([]);
+  };
 
   if (!token) {
     return (
-      <form className="token-form" onSubmit={handleConnect}>
+      <div style={{ padding: '2rem' }}>
         <h1>API Token</h1>
         <p>Enter your API token to connect.</p>
         <input
-          type="password"
+          type="text"
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
           placeholder="Token"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          style={{ marginRight: '1rem' }}
         />
-        <button type="submit">Connect</button>
-      </form>
-    )
+        <button onClick={handleConnect}>Connect</button>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <header className="app-header">
+    <div style={{ padding: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Items</h1>
-        <button className="btn-disconnect" onClick={handleDisconnect}>
-          Disconnect
-        </button>
-      </header>
-
-      {loading && <p>Loading...</p>}
-      {error && <p>Error: {error}</p>}
-
-      {!loading && !error && (
-        <table>
+        <button onClick={handleDisconnect}>Disconnect</button>
+      </div>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {data.length > 0 ? (
+        <table border={1} cellPadding={8} style={{ borderCollapse: 'collapse', width: '100%' }}>
           <thead>
             <tr>
               <th>ID</th>
               <th>Type</th>
               <th>Title</th>
+              <th>Description</th>
               <th>Created at</th>
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
-              <tr key={item.id}>
+            {data.map((item, index) => (
+              <tr key={index}>
                 <td>{item.id}</td>
                 <td>{item.type}</td>
                 <td>{item.title}</td>
+                <td>{item.description}</td>
                 <td>{item.created_at}</td>
               </tr>
             ))}
           </tbody>
         </table>
+      ) : (
+        <p>No data</p>
       )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
