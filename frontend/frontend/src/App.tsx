@@ -14,7 +14,6 @@ interface Item {
 function App() {
   const [token, setToken] = useState(localStorage.getItem(API_TOKEN_KEY) || '');
   const [data, setData] = useState<Item[]>([]);
-  const [columns] = useState<string[]>(['id', 'type', 'title', 'description', 'created_at']);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -77,13 +76,21 @@ function App() {
         <table border={1} cellPadding={8} style={{ borderCollapse: 'collapse', width: '100%' }}>
           <thead>
             <tr>
-              {columns.map(col => <th key={col}>{col}</th>)}
+              <th>ID</th>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Created at</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((row, i) => (
-              <tr key={i}>
-                {columns.map(col => <td key={col}>{String(row[col as keyof Item])}</td>)}
+            {data.map((item, index) => (
+              <tr key={index}>
+                <td>{item.id}</td>
+                <td>{item.type}</td>
+                <td>{item.title}</td>
+                <td>{item.description}</td>
+                <td>{item.created_at}</td>
               </tr>
             ))}
           </tbody>
