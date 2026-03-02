@@ -35,3 +35,42 @@ def test_filter_includes_interaction_with_different_learner_id():
     assert len(filtered) == 1
     assert filtered[0].item_id == 1
     assert filtered[0].learner_id == 2
+# ===== AI-generated tests =====
+
+def test_filter_by_item_id_returns_empty_list_when_no_match():
+    """Test that filtering by item_id returns empty list when no interactions match."""
+    from app.routers.interactions import _filter_by_item_id
+    interactions = [
+        type('Interaction', (), {'item_id': 2, 'learner_id': 1})(),
+        type('Interaction', (), {'item_id': 3, 'learner_id': 2})(),
+    ]
+    filtered = _filter_by_item_id(interactions, 1)
+    assert len(filtered) == 0
+
+def test_filter_by_item_id_returns_all_when_item_id_is_none():
+    """Test that filtering with item_id=None returns all interactions."""
+    from app.routers.interactions import _filter_by_item_id
+    interactions = [
+        type('Interaction', (), {'item_id': 1, 'learner_id': 1})(),
+        type('Interaction', (), {'item_id': 2, 'learner_id': 2})(),
+    ]
+    filtered = _filter_by_item_id(interactions, None)
+    assert len(filtered) == 2
+
+def test_filter_by_item_id_handles_empty_list():
+    """Test that filtering an empty list returns empty list."""
+    from app.routers.interactions import _filter_by_item_id
+    filtered = _filter_by_item_id([], 1)
+    assert len(filtered) == 0
+
+def test_create_interaction_with_minimum_values():
+    """Test creating interaction with minimum values (boundary test)."""
+    from app.models.interaction import InteractionLogCreate
+    interaction = InteractionLogCreate(
+        learner_id=1,
+        item_id=1,
+        kind="a"
+    )
+    assert interaction.learner_id == 1
+    assert interaction.item_id == 1
+    assert interaction.kind == "a"
