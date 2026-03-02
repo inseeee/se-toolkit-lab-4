@@ -74,3 +74,12 @@ def test_create_interaction_with_minimum_values():
     assert interaction.learner_id == 1
     assert interaction.item_id == 1
     assert interaction.kind == "a"
+def test_filter_excludes_interaction_with_different_learner_id():
+    """Test that filtering by item_id excludes interactions with different item_id."""
+    from app.routers.interactions import _filter_by_item_id
+    interactions = [
+        type('Interaction', (), {'item_id': 2, 'learner_id': 1})(),
+        type('Interaction', (), {'item_id': 3, 'learner_id': 2})(),
+    ]
+    filtered = _filter_by_item_id(interactions, 1)
+    assert len(filtered) == 0
